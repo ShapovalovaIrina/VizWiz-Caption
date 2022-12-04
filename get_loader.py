@@ -52,9 +52,6 @@ class Vocabulary:
                     self.itos[idx] = word
                     idx += 1
 
-        print('vocabulary frequencies:')
-        print(frequencies)
-
     def numericalize(self, text):
         tokenized_text = self.tokenizer_eng(text)
 
@@ -109,7 +106,7 @@ class VizWizDatabase(Dataset):
             left_on='id',
             right_on='image_id'
         )\
-            .query('is_rejected == True | is_precanned == True') \
+            .query('is_rejected == False | is_precanned == False') \
             .rename(columns={"file_name": "image"}) \
             .filter(items=['image', 'caption'])
         return merged

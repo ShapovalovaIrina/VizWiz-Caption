@@ -1,0 +1,6 @@
+venv
+runs
+dataset
+coco_similar
+.idea
+__pycache__/
