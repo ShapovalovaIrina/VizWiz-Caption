@@ -10,31 +10,35 @@ from model import CNNtoRNN
 
 
 def train():
+    # https://pytorch.org/hub/pytorch_vision_resnet/
     transform = transforms.Compose(
         [
-            transforms.Resize((356, 356)),
-            transforms.RandomCrop((299, 299)),
+            transforms.Resize(256),
+            transforms.RandomCrop(224),
+            transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         ]
     )
+
+    batch_size = 64
 
     data_loader, dataset = get_loader(
         root_folder="dataset/train",
         annotation_file="dataset/annotations/train.json",
         transform=transform,
         num_workers=2,
+        batch_size=batch_size
     )
 
     torch.backends.cudnn.benchmark = True
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    load_model = False
+    load_model = True
     save_model = True
-    train_CNN = False
 
     # Hyperparameters
-    embed_size = 256
-    hidden_size = 256
+    embed_size = 512
+    hidden_size = 512
     vocab_size = len(dataset.vocab)
     num_layers = 1
     learning_rate = 1e-3
@@ -49,12 +53,12 @@ def train():
     criterion = nn.CrossEntropyLoss(ignore_index=dataset.vocab.stoi["<PAD>"])
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    # Only finetune the CNN
-    for name, param in model.encoderCNN.inception.named_parameters():
-        if "fc.weight" in name or "fc.bias" in name:
-            param.requires_grad = True
-        else:
-            param.requires_grad = train_CNN
+    # # Only finetune the CNN
+    # for name, param in model.encoderCNN.inception.named_parameters():
+    #     if "fc.weight" in name or "fc.bias" in name:
+    #         param.requires_grad = True
+    #     else:
+    #         param.requires_grad = train_CNN
 
     if load_model:
         step = load_checkpoint(torch.load("checkpoint.pth.tar"), model, optimizer)

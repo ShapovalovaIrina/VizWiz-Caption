@@ -106,7 +106,7 @@ class VizWizDatabase(Dataset):
             left_on='id',
             right_on='image_id'
         )\
-            .query('is_rejected == False | is_precanned == False') \
+            .query('is_rejected == False & is_precanned == False') \
             .rename(columns={"file_name": "image"}) \
             .filter(items=['image', 'caption'])
         return merged
@@ -167,6 +167,6 @@ if __name__ == "__main__":
     vocab_size = len(loader.dataset.vocab)
     print(f'vocab length {vocab_size}')
 
-    for idx, (imgs, captions) in enumerate(loader):
-        print(imgs.shape)
-        print(captions.shape)
+    # for idx, (imgs, captions) in enumerate(loader):
+    #     print(imgs.shape)
+    #     print(captions.shape)
