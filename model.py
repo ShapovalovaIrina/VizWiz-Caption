@@ -5,58 +5,33 @@ import torchvision.models as models
 
 
 class EncoderCNN(nn.Module):
-    def __init__(self, embed_size):
+    def __init__(self, embed_size, train_CNN=False):
         super(EncoderCNN, self).__init__()
-        # self.inception = models.inception_v3(pretrained=True, aux_logits=True)
-        # self.inception.fc = nn.Linear(self.inception.fc.in_features, embed_size)
-        # self.relu = nn.ReLU()
-        # self.times = []
-        # self.dropout = nn.Dropout(0.5)
-
-        resnet = models.resnet50(pretrained=True)
-        for param in resnet.parameters():
-            param.requires_grad_(False)
-
-        modules = list(resnet.children())[:-1]
-        self.resnet = nn.Sequential(*modules)
-        # fc = fully connected
-        self.embed = nn.Linear(resnet.fc.in_features, embed_size)
-        self.bn = nn.BatchNorm1d(embed_size)
+        self.train_CNN = train_CNN
+        self.inception = models.inception_v3(pretrained=True, aux_logits=True)
+        self.inception.fc = nn.Linear(self.inception.fc.in_features, embed_size)
+        self.relu = nn.ReLU()
+        self.times = []
+        self.dropout = nn.Dropout(0.5)
 
     def forward(self, images):
-        # features = self.inception(images)
-        # if type(features) is models.InceptionOutputs:
-        #     features = features.logits
-        # # print(features)
-        # return self.dropout(self.relu(features))
-        features = self.resnet(images)
-        features = features.view(features.size(0), -1)
-        features = self.embed(features)
-        return features
+        features = self.inception(images)
+        if type(features) is models.InceptionOutputs:
+            features = features.logits
+        # print(features)
+        return self.dropout(self.relu(features))
 
 
 class DecoderRNN(nn.Module):
     def __init__(self, embed_size, hidden_size, vocab_size, num_layers):
         super(DecoderRNN, self).__init__()
-        # self.embed = nn.Embedding(vocab_size, embed_size)
-        # self.lstm = nn.LSTM(embed_size, hidden_size, num_layers)
-        # self.linear = nn.Linear(hidden_size, vocab_size)
-        # self.dropout = nn.Dropout(0.5)
-
         self.embed = nn.Embedding(vocab_size, embed_size)
-        self.lstm = nn.LSTM(input_size=embed_size,
-                            hidden_size=hidden_size,
-                            num_layers=num_layers,
-                            bias=True,
-                            batch_first=True,
-                            dropout=0,
-                            bidirectional=False,
-                            )
+        self.lstm = nn.LSTM(embed_size, hidden_size, num_layers)
         self.linear = nn.Linear(hidden_size, vocab_size)
+        self.dropout = nn.Dropout(0.5)
 
     def forward(self, features, captions):
-        # embeddings = self.dropout(self.embed(captions))
-        embeddings = self.embed(captions)
+        embeddings = self.dropout(self.embed(captions))
         embeddings = torch.cat((features.unsqueeze(0), embeddings), dim=0)
         hiddens, _ = self.lstm(embeddings)
         outputs = self.linear(hiddens)

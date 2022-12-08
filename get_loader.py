@@ -167,6 +167,6 @@ if __name__ == "__main__":
     vocab_size = len(loader.dataset.vocab)
     print(f'vocab length {vocab_size}')
 
-    # for idx, (imgs, captions) in enumerate(loader):
-    #     print(imgs.shape)
-    #     print(captions.shape)
+    for idx, (imgs, captions) in enumerate(loader):
+        print(imgs.shape)
+        print(captions.shape)
