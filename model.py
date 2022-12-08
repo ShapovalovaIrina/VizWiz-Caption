@@ -8,7 +8,8 @@ class EncoderCNN(nn.Module):
     def __init__(self, embed_size, train_CNN=False):
         super(EncoderCNN, self).__init__()
         self.train_CNN = train_CNN
-        self.inception = models.inception_v3(pretrained=True, aux_logits=True)
+        self.inception = models.inception_v3(pretrained=True)
+        self.inception.aux_logits = False
         self.inception.fc = nn.Linear(self.inception.fc.in_features, embed_size)
         self.relu = nn.ReLU()
         self.times = []
@@ -16,8 +17,8 @@ class EncoderCNN(nn.Module):
 
     def forward(self, images):
         features = self.inception(images)
-        if type(features) is models.InceptionOutputs:
-            features = features.logits
+        # if type(features) is models.InceptionOutputs:
+        #     features = features.logits
         # print(features)
         return self.dropout(self.relu(features))
 
